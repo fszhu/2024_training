@@ -35,7 +35,7 @@ public class QuartzConfig {
                 .forJob(jobDetail())
                 .withIdentity("trigger", "trigger")
                 .startNow()
-                .withSchedule(CronScheduleBuilder.cronSchedule("*/2 * * * * ?"))
+                .withSchedule(CronScheduleBuilder.cronSchedule("*/59 * * * * ?"))
                 .build();
     }
 }

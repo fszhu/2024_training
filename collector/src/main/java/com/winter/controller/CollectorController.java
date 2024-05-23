@@ -6,8 +6,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CollectorController {
 
-    @GetMapping("/hello")
-    public String hello(){
+    /**
+     * 主动查询接口
+     *  * */
+    @GetMapping("/queryCPU")
+    public String queryCPU(){
         return "hello !!!";
     }
 }
