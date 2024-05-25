@@ -10,28 +10,29 @@
     <!--新插入一条数据-->
     <insert id="add" parameterType="com.winter.domain.Performance">
         insert into performance(id, hostname, timestamp, step, cpu_usage, mem_usage)
-        values(#{id}, #{hostname}, #{timestamp}, #{step}, #{cpu_usage}, #{mem_usage})
+        values(#{performance.id}, #{performance.hostname}, #{performance.timestamp}, #{performance.step}, #{performance.cpu_usage}, #{performance.mem_usage})
     </insert>
 
     <!--条件查询语句，查询指定机器，指定范围的数据-->
-    <select id="findByCondition" parameterType="com.winter.req.QueryPerformanceReq">
-        select
+    <select id="findByCondition" parameterType="com.winter.req.QueryPerformanceReq" resultType="com.winter.domain.Performance">
+        select id, hostname, timestamp, step,
             <choose>
-                <when test="metric == null">
+                <when test="req.metric == null">
                     cpu_usage, mem_usage
                 </when>
-                <when test="metric == 'cpu.used.percent'">
+                <when test="req.metric == 'cpu.used.percent'">
                     cpu_usage
                 </when>
-                <when test="metric == 'mem.used.percent'">
+                <when test="req.metric == 'mem.used.percent'">
                     mem_usage
                 </when>
             </choose>
         from performance
             <where>
-                <if test="endpoint != null">and hostname = #{endpoint}</if>
-                <if test="start_ts != null">and start_ts &gt; #{start_ts}</if>
-                <if test="end_ts != null">and end_ts &lt; #{end_ts}</if>
+                1=1
+                <if test="req.endpoint != null">and hostname = #{req.endpoint}</if>
+                <if test="req.start_ts != null">and timestamp &gt;= #{req.start_ts}</if>
+                <if test="req.end_ts != null">and timestamp &lt;= #{req.end_ts}</if>
             </where>
     </select>
 </mapper>

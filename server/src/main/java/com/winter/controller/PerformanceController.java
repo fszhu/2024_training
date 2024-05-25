@@ -42,6 +42,7 @@ public class PerformanceController {
      * */
     @GetMapping("/findByCondition")
     public List<Performance> findByCondition(@RequestBody QueryPerformanceReq req){
+        System.out.println(req.toString());
         return performanceService.findByCondition(req);
     }
 }
