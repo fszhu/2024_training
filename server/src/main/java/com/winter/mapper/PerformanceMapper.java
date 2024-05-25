@@ -1,7 +1,9 @@
 package com.winter.mapper;
 
 import com.winter.domain.Performance;
+import com.winter.req.QueryPerformanceReq;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -11,5 +13,18 @@ import java.util.List;
 
 @Mapper
 public interface PerformanceMapper {
+        /**
+         * 查询所有的数据
+         * */
         List<Performance> findAll();
+
+        /**
+         * 保存机器的信息
+         * */
+        void add(@Param("performance") Performance performance);
+
+        /**
+         * 条件查询机器信息
+         * */
+        List<Performance> findByCondition(@Param("req") QueryPerformanceReq req);
 }
