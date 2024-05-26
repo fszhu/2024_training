@@ -1,6 +1,8 @@
 package com.winter.service;
 
+import com.winter.feign.ServerFeign;
 import com.winter.req.UploadReq;
+import jakarta.annotation.Resource;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -25,6 +27,9 @@ public class CpuAndMemoryPerformance implements Job {
     private static String HOSTNAME;
 
     private static UploadReq[] uploadReqs = new UploadReq[2];
+
+    @Resource
+    private ServerFeign serverFeign;
 
     public CpuAndMemoryPerformance(){  //在构造方法中初始化
         for (int i = 0; i < uploadReqs.length; i++) {
@@ -73,6 +78,9 @@ public class CpuAndMemoryPerformance implements Job {
 
             System.out.println(uploadReqs[0]);
             System.out.println(uploadReqs[1]);
+
+            //跨服务调用server
+            serverFeign.add(uploadReqs);
 
         } catch (Exception e){
             e.printStackTrace();
