@@ -1,5 +1,7 @@
 package com.winter.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.winter.Service.PerformanceService;
 import com.winter.domain.Performance;
 import com.winter.enums.StatusEnum;
@@ -9,6 +11,7 @@ import com.winter.resp.CommonResp;
 import com.winter.resp.Data;
 import com.winter.resp.Values;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -23,6 +26,9 @@ public class PerformanceController {
 
     @Autowired
     private PerformanceService performanceService;
+
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
 
     /**
      * 添加数据
@@ -68,21 +74,56 @@ public class PerformanceController {
     public CommonResp findByCondition(@RequestBody QueryPerformanceReq req){
         CommonResp resp = new CommonResp();
         try {
-            //请求成功
-            List<Performance> performanceList = performanceService.findByCondition(req);
+            List<Performance> performanceList;
+            //先查询redis缓存，缓存命中则直接返回，未命中则查询数据库
+            //根据req构建key: hostname-metric-start-end, value存入的值就是Data类型
+            String key = req.getEndpoint();
+            if (req.getMetric() == null){ //要查询全部的数据
+                key += "-cpu.mem.used.percent-" + req.getStart_ts() + "-" + req.getEnd_ts();
+            } else if("cpu.used.percent".equals(req.getMetric())){  //只查询cpu
+                key += "-cpu.used.percent-" + req.getStart_ts() + "-" + req.getEnd_ts();
+            } else {  //只查询mem
+                key += "-mem.used.percent-" + req.getStart_ts() + "-" + req.getEnd_ts();
+            }
+
+            //查询缓存
+            List<Object> objects = redisTemplate.opsForList().range(key, 0, -1);
+            List<Data> dataList = new ArrayList<>();
+            for (Object o : objects){
+                List list = (List) o;  //强制类型转换
+                Data d = (Data) list.get(0);
+                dataList.add(d);
+            }
+
+
+            //缓存命中
+            if (dataList.size() != 0){
+                //封装结果成resp
+                resp.setCode(StatusEnum.QUERY_SUCCESS.getCode());
+                resp.setMessage("ok");
+                resp.setContent(dataList);
+                return resp;
+            }
+
+            //缓存未命中
+            //查询数据库
+            performanceList = performanceService.findByCondition(req);
 
             //对查询得到的结果进行封装,init
-            Data[] data = new Data[2];  //两个指标cpu和mem
-            data[0] = new Data();
-            data[1] = new Data();
+            List<Data> data = new ArrayList<>();
+            Data data0 = new Data();
+            Data data1 = new Data();
+            data.add(data0);
+            data.add(data1);
 
-            data[0].setMetric("cpu.used.percent");
-            data[1].setMetric("mem.used.percent");
+            //设置Data的metric字段
+            data0.setMetric("cpu.used.percent");
+            data1.setMetric("mem.used.percent");
             //这里注意多线程情况下ArrayList的线程安全问题
             List<Values> cpu_vals = new ArrayList<>();  //cpu相关的指标
             List<Values> mem_vals = new ArrayList<>();  //mem相关指标
-            data[0].setValues(cpu_vals);
-            data[1].setValues(mem_vals);
+            data0.setValues(cpu_vals);
+            data1.setValues(mem_vals);
 
             for (Performance p : performanceList){
                 //cpu指标集合：两个指标，采集时间和具体的值
@@ -106,12 +147,18 @@ public class PerformanceController {
             resp.setCode(StatusEnum.QUERY_SUCCESS.getCode());
             resp.setContent(data);
             resp.setMessage("ok");
+
+            //存入缓存
+            redisTemplate.opsForList().rightPush(key, data);
+
         } catch (Exception e){
-            //请求失败
+            e.printStackTrace();
+            //请求失败, 请求失败的结果不放入缓存
             String message = e.getMessage();
             resp.setCode(StatusEnum.QUERY_FAIL.getCode());
             resp.setMessage(message);
             resp.setContent(null);
+            e.printStackTrace();
         }
         return resp;
     }
