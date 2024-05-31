@@ -1,12 +1,11 @@
 package com.winter.resp;
 
-import java.io.Serializable;
 import java.util.List;
 
 /**
  * 用户查询时封装在content中的内容：data
  * */
-public class Data implements Serializable {
+public class Data {
     private String metric;  //指标名称
     List<Values> values;  //采集到的数据
 
