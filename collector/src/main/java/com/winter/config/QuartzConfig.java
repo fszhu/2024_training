@@ -1,6 +1,7 @@
 package com.winter.config;
 
 import com.winter.service.CpuAndMemoryPerformance;
+import com.winter.service.StorageMonitor;
 import org.quartz.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +17,10 @@ import org.springframework.context.annotation.Configuration;
 public class QuartzConfig {
 
     /**
-     * 声名一个任务
+     * 声名定时上传主机cpu和内存数据信息的定时任务
      * */
     @Bean
-    public JobDetail jobDetail(){
+    public JobDetail jobDetail_uploadCpuMem(){
         return JobBuilder.newJob(CpuAndMemoryPerformance.class)
                 .withIdentity("CpuAndMemoryPerformance", "XiaoMi")
                 .storeDurably()
@@ -27,15 +28,40 @@ public class QuartzConfig {
     }
 
     /**
-     * 声名一个触发器，设置执行的时机
+     * 声名jobDetail_uploadCpuMem的触发器，设置执行的时机
      * */
     @Bean
-    public Trigger trigger(){
+    public Trigger trigger_uploadCpuMem(){
         return TriggerBuilder.newTrigger()
-                .forJob(jobDetail())
-                .withIdentity("trigger", "trigger")
+                .forJob(jobDetail_uploadCpuMem())
+                .withIdentity("uploadCpuMem", "trigger")
                 .startNow()
                 .withSchedule(CronScheduleBuilder.cronSchedule("*/59 * * * * ?"))
+                .build();
+    }
+
+
+    /**
+     * 定时上传配置文件中配置的存储方式
+     * */
+    @Bean
+    public JobDetail jobDetail_uploadLogStorage(){
+        return JobBuilder.newJob(StorageMonitor.class)
+                .withIdentity("LogStorage", "XiaoMi")
+                .storeDurably()
+                .build();
+    }
+
+    /**
+     * 声名jobDetail_uploadLogStorage的触发器，设置执行的时机为每30s上传一次
+     * */
+    @Bean
+    public Trigger trigger_uploadLogStorage(){
+        return TriggerBuilder.newTrigger()
+                .forJob(jobDetail_uploadLogStorage())
+                .withIdentity("uploadLogStorage", "trigger")
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule("*/29 * * * * ?"))
                 .build();
     }
 }
