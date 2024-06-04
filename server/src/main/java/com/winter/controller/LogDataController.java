@@ -29,8 +29,14 @@ public class LogDataController{
         CommonResp resp = new CommonResp();
         //应该查询三种方式存储的日志全部的结果
         LogStore mysql = LogStoreFactory.getStorageMethod("mysql");
+
+        //查询数据库
         List<LogData> logData = mysql.queryData(logQueryReq);
         System.out.println(logData);
+
+        //查询es
+
+        //查询local_file
         return resp;
     }
 }

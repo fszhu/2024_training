@@ -7,10 +7,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.repository.config.EnableElasticsearchRepositories;
 
 @SpringBootApplication
 @ComponentScan("com.winter")
 @MapperScan(value = "com.winter.mapper")
+@EnableElasticsearchRepositories(basePackages = "com.winter.es")
 public class ServerApplication {
 
     //增加日志打印功能

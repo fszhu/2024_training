@@ -4,8 +4,6 @@ import com.winter.Service.LogService;
 import com.winter.domain.LogData;
 import com.winter.req.LogQueryReq;
 import com.winter.utils.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.List;
 

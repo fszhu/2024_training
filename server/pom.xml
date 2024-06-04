@@ -67,6 +67,22 @@
             <version>3.8.0</version>
         </dependency>
 
+        <!--spring boot集成es-->
+        <!-- Spring Data Elasticsearch -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <!-- es 客户端-->
+        <!-- Elasticsearch RestHighLevelClient -->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+            <version>7.10.2</version>
+        </dependency>
+
     </dependencies>
 
     <properties>
