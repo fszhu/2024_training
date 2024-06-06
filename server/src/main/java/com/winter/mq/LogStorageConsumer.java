@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
  * 消费日志的存储方式，定时更新日志的存储存储方式
  * */
 @Service
-@RocketMQMessageListener(consumerGroup = "default", topic = "LOG_STORAGE")
+@RocketMQMessageListener(consumerGroup = "storage_consumer", topic = "LOG_STORAGE")
 public class LogStorageConsumer implements RocketMQListener<MessageExt> {
 
     private static String storage;  //日志的存储方式，静态成员变量，方便其他类访问

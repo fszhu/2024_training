@@ -19,8 +19,9 @@ import org.springframework.stereotype.Service;
  * 具体的存储方式由存储工厂实现
  * */
 @Service
-@RocketMQMessageListener(consumerGroup = "default", topic = "LOG_DATA")
+@RocketMQMessageListener(consumerGroup = "data_consumer", topic = "LOG_DATA")
 public class LogDataConsumer implements RocketMQListener<MessageExt> {
+
 
     @Override
     public void onMessage(MessageExt messageExt) {
@@ -43,12 +44,12 @@ public class LogDataConsumer implements RocketMQListener<MessageExt> {
             //根据存储方式返回具体的日志存储方案
             LogStore storageMethod = LogStoreFactory.getStorageMethod(store);
 
-            //封装LogData
+            //封装LogData,LogData的logs类型为String类型
             LogData logData = new LogData();
             logData.setId(SnowUtil.getSnowflakeNextIdStr());
             logData.setHostname(data.getHostname());
             logData.setFile(data.getFile());
-            logData.setLogs(data.getLogs().toString());
+            logData.setLogs(data.getLogs().toString());  //List转String
 
             //调用存LogStore的存储方案，存储数据
             storageMethod.storeData(logData);

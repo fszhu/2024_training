@@ -168,7 +168,10 @@ public class LogService {
             List<String> logs = new ArrayList<>();  //创建一个集合，存储日志新增的内容
             //读取新增的内容，将其添加到集合
             while((line = file.readLine()) != null){
-                logs.add(line);
+                // 忽略空行（仅包含回车或换行符的行）
+                if (!line.trim().isEmpty()) {
+                    logs.add(line);
+                }
             }
             lastKnownPosition = file.getFilePointer();  //更新文件指针的位置
             lastKnownPositionMap.put(filePath.toString(), lastKnownPosition); //更新后的值加入集合
@@ -177,7 +180,7 @@ public class LogService {
                 LogUploadReq logUploadReq = new LogUploadReq();
                 logUploadReq.setHostname(HOSTNAME);  //设置主机名
                 logUploadReq.setFile(filePath.toString());  //被监听的日志文件的全路径
-                logUploadReq.setLogs(logs);  //采集的日志文件的内容
+                logUploadReq.setLogs(logs);  //采集的日志文件的内容,这里logs的类型为List
 
                 //调用server，上报日志
                 System.out.println(logUploadReq);
