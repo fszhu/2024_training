@@ -2,8 +2,11 @@ package com.winter.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.winter.config.CFGConfig;
+import com.winter.enums.StatusEnum;
+import com.winter.mq.LogStoreSuccessful;
 import com.winter.req.LogUploadReq;
 import com.winter.enums.MQTopicEnum;
+import com.winter.resp.CommonResp;
 import com.winter.util.SystemUtil;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
@@ -158,7 +161,9 @@ public class LogService {
     /**
      * 读取文件的新增内容，并将其上传到sever
      * */
-    public void readNewContentAndUpload(Path filePath){
+    public CommonResp readNewContentAndUpload(Path filePath){
+        //返回结果
+        CommonResp commonResp = new CommonResp();
         try {
             RandomAccessFile file = new RandomAccessFile(filePath.toFile(), "r");
             //获取对应的文件指针
@@ -183,14 +188,34 @@ public class LogService {
                 logUploadReq.setLogs(logs);  //采集的日志文件的内容,这里logs的类型为List
 
                 //调用server，上报日志
-                System.out.println(logUploadReq);
+                System.out.println("上报日志数据到消息队列：" + logUploadReq);
                 //将封装好的消息发动到消息队列
                 SendResult sendResult = rocketMQTemplate.syncSend(MQTopicEnum.LOG_DATA.getCode(), logUploadReq);
-                System.out.println(sendResult.getSendStatus());
+                System.out.println("数据上报消息队列的状态" + sendResult.getSendStatus());
+
+                //查询结果，日志数据是否到服务端保存成功，这里连续查询100次
+                String s = null;
+                for (int i = 0; i < 100; i++){
+                    s = LogStoreSuccessful.store_success.get(logUploadReq.toString());
+                    if (s != null) break;
+                }
+                if (s == null){
+                    //日志到server端被成功存储
+                    commonResp.setCode(StatusEnum.UPLOAD_SUCCESS.getCode());
+                    commonResp.setMessage("ok");
+                } else {
+                    //日志到server端没有成功存储
+                    commonResp.setCode(StatusEnum.UPLOAD_FAIL.getCode());
+                    commonResp.setMessage(s);
+                }
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            //这里的逻辑还有一定的问题，”发生异常似乎也可能日志存储成功“
+            commonResp.setCode(StatusEnum.UPLOAD_FAIL.getCode());
+            commonResp.setMessage(e.getMessage());
+            return commonResp;
         }
+        return commonResp;
     }
 
 }

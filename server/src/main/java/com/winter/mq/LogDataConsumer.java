@@ -3,13 +3,20 @@ package com.winter.mq;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.winter.domain.LogData;
+import com.winter.enums.MQTopicEnum;
+import com.winter.enums.StatusEnum;
 import com.winter.factory.LogStore;
 import com.winter.factory.LogStoreFactory;
 import com.winter.req.LogUploadReq;
+import com.winter.resp.CommonResp;
 import com.winter.utils.SnowUtil;
+import jakarta.annotation.Resource;
 import org.apache.rocketmq.common.message.MessageExt;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
 /**
@@ -22,6 +29,8 @@ import org.springframework.stereotype.Service;
 @RocketMQMessageListener(consumerGroup = "data_consumer", topic = "LOG_DATA")
 public class LogDataConsumer implements RocketMQListener<MessageExt> {
 
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
 
     @Override
     public void onMessage(MessageExt messageExt) {
@@ -29,18 +38,22 @@ public class LogDataConsumer implements RocketMQListener<MessageExt> {
         String log_data = new String(body);
         System.out.println("消费消息队列中的数据：" + log_data);
 
+        CommonResp resp = new CommonResp();
+        //将json格式的字符串，转换为相应的对象LogUploadReq
+        ObjectMapper objectMapper = new ObjectMapper();
+        LogUploadReq data = null;
         try {
-            //将json格式的字符串，转换为相应的对象LogUploadReq
-            ObjectMapper objectMapper = new ObjectMapper();
-            LogUploadReq data = objectMapper.readValue(log_data, LogUploadReq.class);
+            data = objectMapper.readValue(log_data, LogUploadReq.class);
+            System.out.println("反序列化消息队列中的数据" + data);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
 
-            System.out.println(data);
-            System.out.println(data.getLogs().toString());
+        //获取存储方式
+        String store = LogStorageConsumer.getStorage();
+        System.out.println("当前的存储方式：" + store);
 
-            //获取存储方式
-            String store = LogStorageConsumer.getStorage();
-            System.out.println("当前的存储方式：" + store);
-
+        try {
             //根据存储方式返回具体的日志存储方案
             LogStore storageMethod = LogStoreFactory.getStorageMethod(store);
 
@@ -54,9 +67,18 @@ public class LogDataConsumer implements RocketMQListener<MessageExt> {
             //调用存LogStore的存储方案，存储数据
             storageMethod.storeData(logData);
 
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e){
+            //数据上传失败
+            resp.setCode(StatusEnum.UPLOAD_FAIL.getCode());
+            resp.setMessage(e.getMessage());
+            resp.setContent(data);
         }
 
+        //数据上传成功
+        resp.setCode(StatusEnum.UPLOAD_SUCCESS.getCode());
+        resp.setMessage("ok");
+
+        //将结果发送到另外一个消息队列
+        rocketMQTemplate.syncSend(MQTopicEnum.LOG_CONSUMPTION_RESULT.getCode(), resp);
     }
 }

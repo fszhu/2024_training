@@ -5,6 +5,7 @@ package com.winter.req;
  * */
 public class LogQueryReq {
     private String hostname;
+    
     private String file;
 
     public String getHostname() {

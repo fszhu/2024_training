@@ -10,7 +10,7 @@ import java.util.List;
  * 第一个泛型为实体的类型，第二个泛型为主键的类型
  * */
 @Repository
-public interface ESLogDataDao extends ElasticsearchRepository<ESLogData, Long> {
+public interface ESLogDataDao extends ElasticsearchRepository<ESLogData, Long>{
 
     /**
      * 根据条件检索索引库中的内容

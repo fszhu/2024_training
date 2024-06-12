@@ -5,7 +5,8 @@ package com.winter.enums;
  * */
 public enum MQTopicEnum {
     LOG_STORAGE("LOG_STORAGE", "日志的存储方式"),
-    LOG_DATA("LOG_DATA", "日志数据");
+    LOG_DATA("LOG_DATA", "日志数据"),
+    LOG_CONSUMPTION_RESULT("LOG_CONSUMPTION_RESULT", "日志存储是否成功");
 
     private String code;
     private String desc;

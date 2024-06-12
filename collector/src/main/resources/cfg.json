@@ -3,5 +3,5 @@
     "/usr/workspace/PerformanceMonitorSystem/log/collector/a.log",
     "/usr/workspace/PerformanceMonitorSystem/log/collector/b.log"
   ],
-  "log_storage": "local_file"
+  "log_storage": "mysql"
 }
