@@ -24,4 +24,12 @@ public class CFGConfig {
     public void setLog_storage(String log_storage) {
         this.log_storage = log_storage;
     }
+
+    @Override
+    public String toString() {
+        return "CFGConfig{" +
+                "files=" + files +
+                ", log_storage='" + log_storage + '\'' +
+                '}';
+    }
 }

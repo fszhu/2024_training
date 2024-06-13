@@ -58,11 +58,40 @@
     </dependencies>
 
     <build>
+        <finalName>fszhu-collector</finalName>
+
         <plugins>
             <plugin>
+                <!--用于spring boot应用程序的构建和打包-->
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>3.0.0</version>
+            </plugin>
+
+            <plugin>
+                <!--用于通过maven和构建和管理Docker镜像-->
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.38.1</version>
+                <configuration>
+                    <images>
+                        <image>
+                            <name>${project.artifactId}:${project.version}</name>
+                            <build>
+                                <from>openjdk:17-jdk</from>
+                                <!--定义容器启动时执行的命令-->
+                                <entryPoint>
+                                    ["java", "-jar", "/maven/${project.build.finalName}.jar"]
+                                </entryPoint>
+                                <!--用于将构建结果包含在镜像中的方法-->
+                                <assembly>
+                                    <!--默认的artifact打包配置-->
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+                </configuration>
             </plugin>
         </plugins>
     </build>

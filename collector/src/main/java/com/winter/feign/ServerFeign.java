@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-@FeignClient(name = "server", url = "http://localhost:8008/server")
+@FeignClient(name = "server", url = "http://8.149.133.112:8008/server")
 public interface ServerFeign {
     @GetMapping("/hello")
     public String hello();

@@ -9,6 +9,7 @@ import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -40,11 +41,10 @@ public class StorageMonitor implements Job {
             String cfg_path = properties.getProperty("cfgConfig.file.path");  //获取cfg文件的路径
 
             //根据cfg文件路径解析文件内容
-            ResourceLoader resourceLoader = new DefaultResourceLoader();
-            Resource resource = resourceLoader.getResource(cfg_path);
-            File file = resource.getFile();
+            org.springframework.core.io.Resource resource = new ClassPathResource(cfg_path);
+            InputStream resourceInputStream = resource.getInputStream();
             ObjectMapper mapper = new ObjectMapper();
-            CFGConfig cfgConfig = mapper.readValue(file, CFGConfig.class); //将配置文件的内容解析到cfgConfig对象中
+            CFGConfig cfgConfig = mapper.readValue(resourceInputStream, CFGConfig.class); //将配置文件的内容解析到cfgConfig对象中
 
             //将具体的存储方式上传到消息队列
             SendResult sendResult = rocketMQTemplate.syncSend(MQTopicEnum.LOG_STORAGE.getCode(), cfgConfig.getLog_storage());

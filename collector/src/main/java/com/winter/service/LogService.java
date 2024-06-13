@@ -12,12 +12,10 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -70,13 +68,13 @@ public class LogService {
 
             //解析cfg.json配置文件
             //根据路径名获取相应的file类
-            ResourceLoader resourceLoader = new DefaultResourceLoader();
-            org.springframework.core.io.Resource resource = resourceLoader.getResource(cfgConfigPath);
-            File resourceFile = resource.getFile();
+            org.springframework.core.io.Resource resource = new ClassPathResource(cfgConfigPath);
+            InputStream resourceInputStream = resource.getInputStream();
 
             //json文件序列化，初始化CFGConfig类
             ObjectMapper objectMapper = new ObjectMapper();
-            cfgConfig = objectMapper.readValue(resourceFile, CFGConfig.class);
+            cfgConfig = objectMapper.readValue(resourceInputStream, CFGConfig.class);
+
         } catch (Exception e){
             e.printStackTrace();
         }
